@@ -1,10 +1,6 @@
 from django.shortcuts import render, HttpResponse
-from django.views.decorators.cache import cache_page
-from django.db.models import Count
 from django.db.models import F
-from django.http import JsonResponse
 from blog import models
-from django import forms
 from utils.pagination import Pagination
 import markdown
 

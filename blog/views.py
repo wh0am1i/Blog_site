@@ -3,7 +3,8 @@ from django.db.models import F
 from blog import models
 from utils.pagination import Pagination
 import markdown
-
+from markdown.extensions.toc import TocExtension
+from django.utils.text import slugify
 
 # 首页加载数据
 def index(request):
@@ -43,15 +44,22 @@ def get_blog_detail(request, id):
     try:
         # 根据传入的ID获取信息
         blog_detail = models.Blog.objects.get(id=id)
-        blog_detail.content = markdown.markdown(blog_detail.content, extensions=[
+        # 解析markdown 代码高亮以及生成目录
+        md = markdown.Markdown(extensions=[
             'markdown.extensions.extra',
+            'markdown.extensions.codehilite',
+            'markdown.extensions.toc',
+            'markdown.extensions.fenced_code',
+            TocExtension(slugify=slugify),
         ])
+        blog_detail.content = md.convert(blog_detail.content)
+
     except Exception:
         blog_detail = models.Blog.objects.get(id=id)
     # 访问一次访问量加1
     models.Blog.objects.filter(id=id).update(watch=F('watch')+1)
     # 校验对象
-    return render(request, 'detail.html', {'blog_detail': blog_detail})
+    return render(request, 'detail.html', {'blog_detail': blog_detail, 'toc': md.toc})
 
 
 # 关于我
